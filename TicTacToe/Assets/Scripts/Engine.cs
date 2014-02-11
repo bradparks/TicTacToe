@@ -10,6 +10,7 @@ public class Engine : MonoBehaviour {
 	private NetworkScript networkScript;
 	private GameBoard gameBoard;
 	private string textFieldString = "Game #1";
+	private string gameName;
 
 	private bool instantiationFlag = false;
 	private bool networked;
@@ -25,6 +26,9 @@ public class Engine : MonoBehaviour {
 	private int winner, p1Wins,p2Wins, draws;
 	private int menuPage = 0;
 
+	public string GameName{
+		set{gameName = value;}
+	}
 
 	public bool Networked{
 		get{return networked;}
@@ -96,8 +100,12 @@ public class Engine : MonoBehaviour {
 		   && turn.currentTurnState!=(int)TurnState.States.Start && turn.currentTurnState!=(int)TurnState.States.End){
 			Debug.Log ("Winner found, game set to end");
 			winner = gameBoard.ReturnWinner();
-			if(winner == (int)GameBoard.SpaceStatus.X) p1Wins++;
-			if(winner == (int)GameBoard.SpaceStatus.O) p2Wins++;
+			if(winner == (int)GameBoard.SpaceStatus.X){ 
+				p1Wins++;
+			}else if(winner == (int)GameBoard.SpaceStatus.O){ 
+				p2Wins++;
+			}
+
 			turn.EndGame();
 		}
 		
@@ -105,6 +113,22 @@ public class Engine : MonoBehaviour {
 			Debug.Log ("Board is full, game set to end");
 			draws++;
 			turn.EndGame();
+		}
+	}
+
+	//0 for draws, 1 for p1, 2 for p2
+	[RPC] void SetWinCount(int player,int amount){ 
+		Debug.Log ("SetWinCount RPC call");
+		switch(player){
+		case 0:
+			draws = amount;
+			break;
+		case 1:
+			p1Wins = amount;
+			break;
+		case 2:
+			p2Wins = amount;
+			break;
 		}
 	}
 
@@ -134,14 +158,20 @@ public class Engine : MonoBehaviour {
 		   && turn.currentTurnState!=(int)TurnState.States.Start && turn.currentTurnState!=(int)TurnState.States.End){
 			Debug.Log ("Winner found, game set to end");
 			winner = gameBoard.ReturnWinner();
-			if(winner == (int)GameBoard.SpaceStatus.X) p1Wins++;
-			if(winner == (int)GameBoard.SpaceStatus.O) p2Wins++;
+			if(winner == (int)GameBoard.SpaceStatus.X){ 
+				p1Wins++;
+				networkView.RPC ("SetWinCount",RPCMode.All,1,p1Wins);
+			}else if(winner == (int)GameBoard.SpaceStatus.O){ 
+				p2Wins++;
+				networkView.RPC ("SetWinCount",RPCMode.All,2,p2Wins);
+			}
 			turn.EndGame();
 		}
 		
 		if(gameBoard!=null && gameBoard.BoardFull() && turn.currentTurnState!=(int)TurnState.States.End && turn.currentTurnState!=(int)TurnState.States.Menu){
 			Debug.Log ("Board is full, game set to end");
 			draws++;
+			networkView.RPC ("SetWinCount",RPCMode.All,0,draws);
 			turn.EndGame();
 		}
 	}
@@ -158,18 +188,21 @@ public class Engine : MonoBehaviour {
 	}
 
 	public void ScoreKeeper(){
-		if(networked) GUI.Label(new Rect(Screen.width-100,Screen.height/2-250,100,100),"Player " + (player-1));
-		GUI.Label(new Rect(Screen.width-100,Screen.height/2-200,100,100),"X wins: "+p1Wins);
-		GUI.Label(new Rect(Screen.width-100,Screen.height/2-150,100,100),"O wins: "+p2Wins);
-		GUI.Label(new Rect(Screen.width-100,Screen.height/2-100,100,100),"Draws: "+draws);
+		if(networked){ 
+			GUI.Label(new Rect(Screen.width-100,Screen.height/2-250,100,100),gameName);
+			GUI.Label(new Rect(Screen.width-100,Screen.height/2-200,100,100),"Player " + (player-1));
+		}
+		GUI.Label(new Rect(Screen.width-100,Screen.height/2-150,100,100),System.Convert.ToChar(9632)+" wins: "+p1Wins);
+		GUI.Label(new Rect(Screen.width-100,Screen.height/2-100,100,100),System.Convert.ToChar(9679)+" wins: "+p2Wins);
+		GUI.Label(new Rect(Screen.width-100,Screen.height/2-50,100,100),"Draws: "+draws);
 	}
 
 	public void DebugText(){
 		string currentState = "";
 		if(turn.currentTurnState == (int)TurnState.States.Player1)
-			currentState = "Player 1";
+			currentState = "Player 1's Turn";
 		else if(turn.currentTurnState == (int)TurnState.States.Player2)
-			currentState = "Player 2";
+			currentState = "Player 2's Turn";
 		else if(turn.currentTurnState == (int)TurnState.States.Menu)
 			currentState = "Menu";
 		else if(turn.currentTurnState == (int)TurnState.States.End)
@@ -177,7 +210,7 @@ public class Engine : MonoBehaviour {
 		else if(turn.currentTurnState == (int)TurnState.States.Start)
 			currentState = "Start";
 
-		GUI.Label(new Rect(Screen.width-100,Screen.height-100,100,100),currentState);
+		GUI.Label(new Rect(Screen.width-100,Screen.height-50,100,50),currentState);
 	}
 
 	public Vector2 MouseClickToTileCoords()
@@ -230,15 +263,21 @@ public class Engine : MonoBehaviour {
 			}
 			break;
 		case 1:
+			Vector2 scrollViewVector = Vector2.zero;
 			GUI.Box (new Rect(menuLeft+10,menuTop+20,325,275),"Server List");
-
 			if(networkScript.HostList!=null){
 				//there is a host list instantiated
+				scrollViewVector = GUI.BeginScrollView(new Rect(menuLeft+15,menuTop+30,315,255),scrollViewVector,new Rect(menuLeft+15,menuTop+30,315,255));
+				int count = 0;
 				for(int i=0;i<networkScript.HostList.Length;i++){
-					if(GUI.Button(new Rect(menuLeft+20,menuTop+40+(i*110),305,100), networkScript.HostList[i].gameName)){
-						networkScript.JoinHost(networkScript.HostList[i]);
+					if(networkScript.HostList[i].connectedPlayers<2){
+						if(GUI.Button(new Rect(menuLeft+20,menuTop+40+(count*110),305,100), networkScript.HostList[i].gameName)){
+							networkScript.JoinHost(networkScript.HostList[i]);
+						}
+						count++;
 					}
 				}
+				GUI.EndScrollView();
 			}
 
 			if(GUI.Button(new Rect(menuLeft+150,menuTop+300,100,40), "Refresh")){
@@ -288,7 +327,7 @@ public class Engine : MonoBehaviour {
 						turn.NextTurn();
 					}
 				}else{
-					GUI.Label(new Rect(Screen.width/2+172,Screen.height/2-200,300,300), "Waiting for host to start the game...");
+					GUI.Label(new Rect(Screen.width/2+122,Screen.height/2-200,300,300), "Waiting for host to start the game...");
 				}
 			}else{
 				GUI.Label(new Rect(Screen.width/2+172,Screen.height/2-200,300,300), "Waiting for an opponent...");

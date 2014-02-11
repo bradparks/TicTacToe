@@ -21,11 +21,13 @@ public class NetworkScript : MonoBehaviour {
 	public void HostServer(){
 		Network.InitializeServer(2,2500,!Network.HavePublicAddress());
 		MasterServer.RegisterHost(gameTypeName,roomName);
+		engine.GameName = roomName;
 	}
 
 	public void HostServer(string customRoomName){
 		Network.InitializeServer(2,2500,!Network.HavePublicAddress());
 		MasterServer.RegisterHost(gameTypeName,customRoomName);
+		engine.GameName = customRoomName;
 	}
 
 	public void RefreshHostList(){
@@ -50,6 +52,7 @@ public class NetworkScript : MonoBehaviour {
 	public void JoinHost(HostData hostData){
 		Debug.Log ("Joining host "+hostData.gameName+"...");
 		Network.Connect(hostData);
+		engine.GameName = hostData.gameName;
 	}
 
 	void OnConnectedToServer(){

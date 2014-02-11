@@ -23,7 +23,8 @@ public class GameBoard : MonoBehaviour {
 		for(int i=0;i<3;i++){
 			for(int j=0;j<3;j++){
 				spaces[i,j] = (int)SpaceStatus.open;
-				networkView.RPC("UpdateSpace",RPCMode.All,i,j,(int)SpaceStatus.open);
+				if(engine.Networked)
+					networkView.RPC("UpdateSpace",RPCMode.All,i,j,(int)SpaceStatus.open);
 			}
 		}
 	}
