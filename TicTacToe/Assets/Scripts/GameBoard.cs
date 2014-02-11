@@ -5,21 +5,27 @@ public class GameBoard : MonoBehaviour {
 
 	public enum SpaceStatus{open,X,O}; //0,1,2
 
+
 	TurnState turn;
+	Engine engine;
 	private int[,] spaces;
 
 	// Use this for initialization
 	void Awake () {
 		turn = GameObject.Find("TurnState").GetComponent("TurnState") as TurnState;
+		engine = GameObject.Find("Engine").GetComponent("Engine") as Engine;
 		InitSpaces();
 	}
 	
 
 	public void InitSpaces(){
 		spaces = new int[3,3];
-		for(int i=0;i<3;i++)
-			for(int j=0;j<3;j++)
+		for(int i=0;i<3;i++){
+			for(int j=0;j<3;j++){
 				spaces[i,j] = (int)SpaceStatus.open;
+				networkView.RPC("UpdateSpace",RPCMode.All,i,j,(int)SpaceStatus.open);
+			}
+		}
 	}
 	
 
@@ -66,12 +72,21 @@ public class GameBoard : MonoBehaviour {
 	}
 
 	public void TakeSpace(Vector2 space){
+		int status = 0;
 		if(turn.currentTurnState == (int)TurnState.States.Player1){
 			spaces[(int)space.x,(int)space.y] = (int)SpaceStatus.X;
+			status = (int)SpaceStatus.X;
 		}else if(turn.currentTurnState == (int)TurnState.States.Player2){
 			spaces[(int)space.x,(int)space.y] = (int)SpaceStatus.O;
+			status = (int)SpaceStatus.O;
 		}else{
 			Debug.Log ("Error: GameBoard.TakeSpace");
 		}
+
+		if(engine.Networked) networkView.RPC("UpdateSpace",RPCMode.All,(int)space.x,(int)space.y,status);
+	}
+
+	[RPC] void UpdateSpace(int x,int y, int spaceStatus){
+		spaces[x,y] = spaceStatus;
 	}
 }

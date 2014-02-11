@@ -2,10 +2,11 @@
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" PreferredExecutionTarget="MonoDevelop.Default" />
   <MonoDevelop.Ide.Workbench ActiveDocument="Assets/Scripts/Engine.cs">
     <Files>
-      <File FileName="Assets/Scripts/TurnState.cs" Line="28" Column="17" />
-      <File FileName="Assets/Scripts/Engine.cs" Line="94" Column="3" />
-      <File FileName="Assets/Scripts/GameBoard.cs" Line="1" Column="1" />
-      <File FileName="Assets/Scripts/GamePiece.cs" Line="6" Column="9" />
+      <File FileName="Assets/Scripts/NetworkScript.cs" Line="51" Column="19" />
+      <File FileName="Assets/Scripts/Engine.cs" Line="255" Column="2" />
+      <File FileName="Assets/Scripts/TurnState.cs" Line="6" Column="60" />
+      <File FileName="Assets/Scripts/GamePiece.cs" Line="1" Column="1" />
+      <File FileName="Assets/Scripts/GameBoard.cs" Line="26" Column="74" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
