@@ -7,11 +7,13 @@ public class TurnState : MonoBehaviour {
 
 	public int currentTurnState;
 	Engine engine;
+	NetworkScript networkScript;
 
 	// Use this for initialization
 	void Start () {
 		currentTurnState = (int)States.Menu;
 		engine = GameObject.Find ("Engine").GetComponent("Engine") as Engine;
+		networkScript = GameObject.Find("NetworkManager").GetComponent("NetworkScript") as NetworkScript;
 		//Debug.Log ("currentTurnState set to States.Menu");
 	}
 	
@@ -49,6 +51,8 @@ public class TurnState : MonoBehaviour {
 		currentTurnState = (int)States.Menu;
 		if(engine.Networked)
 			networkView.RPC ("ChangeTurnStateTo",RPCMode.All,currentTurnState);
+
+		networkScript.DisconnectPlayersAndCloseGame();
 	}
 
 

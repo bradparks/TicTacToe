@@ -9,6 +9,7 @@ public class Engine : MonoBehaviour {
 	private TurnState turn;
 	private NetworkScript networkScript;
 	private GameBoard gameBoard;
+	private string textFieldString = "Game #1";
 
 	private bool instantiationFlag = false;
 	private bool networked;
@@ -145,13 +146,11 @@ public class Engine : MonoBehaviour {
 		}
 	}
 
-	public void CheckForDisconnect(){
-		if(Network.connections.Length<1){ 
-			DestroyBoardAndPieces();
-			turn.GoToMenu();
-			Network.Disconnect();
-			menuPage = 0;
-		}
+	public void DisconnectProcedure(){
+		DestroyBoardAndPieces();
+		turn.GoToMenu();
+		Network.Disconnect();
+		menuPage = 0;
 	}
 
 	public void ScoreReset(){
@@ -221,7 +220,8 @@ public class Engine : MonoBehaviour {
 
 			if(!Network.isClient && !Network.isServer){
 				if(GUI.Button(new Rect(Screen.width/2+22,Screen.height/2-100,300,100), "Host Game")){
-					networkScript.HostServer();
+					menuPage = 2;
+					//networkScript.HostServer();
 				}
 			}
 
@@ -246,6 +246,16 @@ public class Engine : MonoBehaviour {
 
 			}
 			if(GUI.Button(new Rect(menuLeft+10,menuTop+300,100,40), "Back")){
+				menuPage = 0;
+			}
+			break;
+		case 2:
+			GUI.Box (new Rect(menuLeft+10,menuTop+20,325,275),"Create Game");
+			textFieldString = GUI.TextField(new Rect(menuLeft+20,menuTop+100,300,100),textFieldString);
+			if(GUI.Button (new Rect(menuLeft+120,menuTop+220,100,40),"Create")){
+				networkScript.HostServer(textFieldString);
+			}
+			if(GUI.Button(new Rect(menuLeft+20,menuTop+300,100,40), "Back")){
 				menuPage = 0;
 			}
 			break;
@@ -316,7 +326,6 @@ public class Engine : MonoBehaviour {
 			DestroyBoardAndPieces();
 			turn.GoToMenu();
 			menuPage = 0;
-			Network.Disconnect();
 		}
 	}
 

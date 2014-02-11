@@ -23,6 +23,11 @@ public class NetworkScript : MonoBehaviour {
 		MasterServer.RegisterHost(gameTypeName,roomName);
 	}
 
+	public void HostServer(string customRoomName){
+		Network.InitializeServer(2,2500,!Network.HavePublicAddress());
+		MasterServer.RegisterHost(gameTypeName,customRoomName);
+	}
+
 	public void RefreshHostList(){
 		Debug.Log ("Refreshing Host List...");
 		MasterServer.RequestHostList(gameTypeName);
@@ -35,6 +40,12 @@ public class NetworkScript : MonoBehaviour {
 		}
 	}
 
+	public void DisconnectPlayersAndCloseGame(){
+		Network.Disconnect();
+		if(Network.isServer){
+			MasterServer.UnregisterHost();
+		}
+	}
 
 	public void JoinHost(HostData hostData){
 		Debug.Log ("Joining host "+hostData.gameName+"...");
@@ -58,7 +69,8 @@ public class NetworkScript : MonoBehaviour {
 		else
 			Debug.Log ("OnPlayerDisconnected called for server");
 
-		engine.CheckForDisconnect();
+		engine.DisconnectProcedure();
+
 		if(Network.isServer){
 			MasterServer.UnregisterHost();
 		}
